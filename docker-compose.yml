@@ -1,0 +1,49 @@
+version: "3.7"
+services:
+  app:
+    build:
+      args:
+        user: pectasus
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: pectasus
+    container_name: pectasus-backend
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - pectasus-network
+
+  db:
+    image: mysql:8.0
+    container_name: pectasus-backend-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    # volumes:
+      # - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - pectasus-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: pectasus-backend-nginx
+    restart: unless-stopped
+    ports:
+      - 4500:80
+    volumes:
+      - ./:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
+    networks:
+      - pectasus-network
+
+networks:
+  pectasus-network:
+    driver: bridge
